@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>add_table</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="miniui/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="miniui/themes/default/miniui.css" />
+    <link rel="stylesheet" href="miniui/themes/icons.css">
+    <script src="miniui/miniui.js"></script>
+</head>
+<body>
+    <form id="form1">
+            <fieldset style="border:solid 1px #aaa;padding:3px;">
+                    <legend >基本信息</legend>
+                    <div style="padding:5px;">
+                <table>
+                    <tr>
+                        <td style="width:80px;">id:</td>
+                        <td style="width:150px;">    
+                            <input  name="id" class="mini-textbox" required="true"/>
+                        </td>
+                        <td style="width:80px;">姓名:</td>
+                        <td style="width:150px;">    
+                            <input  name="name" class="mini-textbox" required="true"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        </td>
+                        <td style="width:80px;">性别:</td>
+                        <td >                        
+                                <input name="gender" class="mini-combobox"  value=""  data= [{"id":"1","text":"男"},{"id":"0","text":"女"}] required="true" /> 
+                        </td>
+                        
+                        <td >年龄:</td>
+                        <td >    
+                            <input  name="age" class="mini-spinner" value="" minValue="0" maxValue="200" required="true"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 80px">手机号码:</td>
+                        <td style="width: 150px">
+                            <input id="phoneNumber"   name="phoneNumber" class="mini-textbox"  onvalidation="onIsPhonenumberAllow" required="true"/>
+                        </td>
+                    </tr>
+                    
+                             
+                </table>            
+                    </div>
+                </fieldset>
+                <div style="text-align:center;padding:10px;">               
+                        <a class="mini-button" onclick="onOk" style="width:60px;margin-right:20px;">确定</a>       
+                        <a class="mini-button" onclick="onCancel" style="width:60px;">取消</a>       
+                </div> 
+    </form>
+        
+    
+</body>
+</html>
+<script type="text/javascript">
+    mini.parse();
+
+    var form = new mini.Form("form1");
+
+
+    function GetData() {    
+        var o = form.getData();
+        return o;
+    }
+
+    function SetData(data){
+        var fields = form.getFields();
+        var c=fields[0];
+        if(data.action="edit"){
+            data=$.extend(true,data,data);
+            if(c.setReadOnly){   //设置控件只读
+                c.setReadOnly(true);
+            }
+            form.setData(data.edit_item);
+        }
+    }
+
+        //关闭子页面
+    function closeWindow(action) {
+        if (window.CloseOwnerWindow)
+            return window.CloseOwnerWindow(action);
+        else
+            window.close();
+    }
+    
+    function onOk() {
+        closeWindow("ok");
+    }
+    
+    function onCancel() {
+        closeWindow("cancel");
+    }
+
+    //校验以1开头的标准手机号码
+    function onIsPhonenumberAllow(e) {
+        var reg= /^1[34578]\d{9}$/;
+            if (e.isValid) {
+                if (reg.test(e.value) == false) {
+                    e.errorText = "请输入正确的手机号码!";
+                    e.isValid = false;
+                 }
+            }
+    }
+        
+        
+
+    
+
+    
+
+    
+</script>

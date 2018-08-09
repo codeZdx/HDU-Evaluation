@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>mini_table</title>
+    <meta charset="UTF-8">
+    <script src="miniui/jquery.min.js"></script>
+    <link rel="stylesheet" href="miniui/themes/default/miniui.css">
+    <link rel="stylesheet" href="miniui/themes/icons.css">
+    <script src="miniui/miniui.js"></script>
+    <style>
+        #table{
+            top: 50%;
+            left: 50%;
+            position: absolute;
+            margin-top: -150px;
+            margin-left: -400px;
+
+        }
+        .red{
+            color:red;
+        }
+    </style>
+</head>
+<body>
+    <div id="table">
+            <div id="buttons" style="width: 800px">
+                <tr>
+                    <td>
+                        <a class="mini-button" iconCls="icon-remove" onclick="deleteRow()">删除</a>
+                        <a class="mini-button" iconCls="icon-add" onclick="addTable()">添加</a>
+                        <a class="mini-button" iconCls="icon-edit" onclick="editRow()">编辑</a>
+                        <input id="nameFilter" property="filter" class="mini-textbox" style="width: 150px;;" 
+                            onvaluechanged="onFilterChanged" emptyText="过滤名字关键字" />
+                        <input id="ageFilter" property="filter" class="mini-filteredit" filterData="ageFilters" style="width:150px;" 
+                            onvaluechanged="onFilterChanged" emptyText="过滤年龄" showClose="true"/>
+                    </td>
+                    <!--<td style="white-space:nowrap;">
+                        <input id="key" class="mini-textbox" emptyText="请输入姓名" style="width:150px;" onenter="onKeyEnter"/> 
+                        <a class="mini-button" onclick="search()">查询</a>
+                    </td>--> 
+                    
+                </tr>
+                
+                                
+            </div>
+            <div id="datagrid1" class="mini-datagrid" style="width:800px;height:300px;" 
+                idField="id" allowResize="false" allowCellEdit="true" allowCellSelect="true"
+            >
+           
+            </div>
+    </div>
+</body>
+</html>
+<script type="text/javascript">
+    var Genders = [{ id: 1, text: '男' }, { id: 0, text: '女'}]; 
+    var ageFilters = [{ text: '大于', value: '>' }, { text: '小于', value: '<' }, { text: '等于', value: '=='}]     
+    mini.parse();
+    var grid = mini.get("datagrid1");
+    var items=[
+        {field:"id",width:"30",headerAlign:"center",align:"center",allowSort:"true",header:"id"},
+        {field:"name",width:"120",headerAlign:"center",align:"center",allowSort:"true",showCellTip:"false",header:"姓名"},
+        {field:"gender",type: "comboboxcolumn",width:"100",renderer:"onGenderRenderer",align:"center",headerAlign:"center",header:"性别",editor:{type:"combobox",data:Genders}},
+        {field:"age",headerAlign:"center",width:"100",allowSort:"true",align:"center",header:"年龄",editor:{type:"spinner"}},
+    ];
+
+    //动态添加定义的列            
+    grid.set({columns:items});      
+
+    var arr=[     
+        {id:1,name:"王力坤",gender:1,age:28},
+        {id:2,name:"周大宝",gender:1,age:19},
+        {id:3,name:"李小明",gender:0,age:21},
+        {id:4,name:"张博涵",gender:0,age:23},
+        {id:5,name:"李程程",gender:1,age:19},
+        {id:6,name:"刘洋龙",gender:0,age:25},
+        {id:7,name:"杨逍一",gender:1,age:22},
+        {id:8,name:"范志强",gender:1,age:26},
+        {id:9,name:"郝兄弟",gender:0,age:18},
+        {id:10,name:"张志鹏",gender:1,age:25},
+            ];            
+    //性别渲染器           
+           
+    function onGenderRenderer(e) {
+        for (var i = 0, l = Genders.length; i < l; i++) {
+            var g = Genders[i];
+            if (g.id == e.value) return g.text;
+        }
+        return "";
+    };
+
+    //删除选中行
+    function deleteRow(){           
+        var rows=grid.getSelecteds();
+        if(rows.length>0){
+            mini.confirm("确定删除记录？","警告",function(action){//confirm返回Boolean,mini.alert()返回警告框，必须加回调函数
+                if(action=="ok"){
+                    grid.removeRows(rows);
+                }
+            })   
+        }else{
+            mini.alert("请选中一条记录");
+        }           
+    };
+
+    //弹出子页面添加一条数据
+    function addTable(){
+        mini.open({
+            targetWindow: window,url:"add_table.html",title:"新增记录",width:600,height:200,showMaxButton: true,
+            onload: function () {
+                var iframe = this.getIFrameEl();
+            },
+            ondestroy: function (action) {
+                if(action=="ok"){
+                    var iframe = this.getIFrameEl();
+                    var add_data = iframe.contentWindow.GetData();
+                    $.extend(true,add_data,add_data);//add_data=mini.clone(add_data);
+                    arr.push(add_data);
+                    grid.setData(arr); 
+                }              
+            }
+        })
+    };
+
+    //编辑选中行，id不能修改
+    function editRow(){         
+        var row=grid.getSelected();
+        if(row){
+            mini.open({
+                targetWindow:window,url:"add_table.html",title:"修改信息",width:600,height:200,showMaxButton:true,
+                onload:function(){
+                    var iframe = this.getIFrameEl();
+                    var data = { action: "edit",edit_item:row};
+                    iframe.contentWindow.SetData(data);
+                },
+                ondestroy:function(action){
+                    if(action=="ok"){
+                        var iframe=this.getIFrameEl();
+                        var edit_data=iframe.contentWindow.GetData();
+                        $.extend(true,edit_data,edit_data);
+                        grid.updateRow (row,edit_data);
+
+                    }
+                }
+            })   
+        }else{
+            mini.alert("请选中一条记录");
+        }
+    };
+
+    //搜索姓名展示详细行
+    /*function search() {
+            var key = mini.get("key").getValue();
+                if(key===grid.name){
+                showRowDetail(grid.row);
+            }else{
+                mini.alert("无此记录！")
+            }
+            
+        };
+    */    
+    //向表格传本地数据
+    grid.setData(arr);
+              
+    //年龄<23的行设置为红色
+    grid.on("drawcell",function(e){
+        var record=e.record;
+        if(record.age<23){
+            e.rowStyle="color:red" ;
+        }
+    });
+
+    //过滤年龄小于输入框里的记录
+    
+    function onFilterChanged(e) {
+        var namebox = mini.get("nameFilter");
+        var agebox = mini.get("ageFilter");
+
+        var name = namebox.getValue().toLowerCase();
+        var age = parseInt(agebox.getValue().toLowerCase());
+        var ageFilter = agebox.getFilterValue().toLowerCase();
+    
+        grid.filter(function (row) {
+            var r1 = true;
+                if (name) {
+                    r1 = String(row.name).indexOf(name) != -1;
+                }
+
+            var r2 = true;
+            if (!isNaN(age) && ageFilter) {
+                r2 = false;
+                if (ageFilter == ">" && row.age > age) r2 = true;
+                if (ageFilter == "<" && row.age < age) r2 = true;
+                if (ageFilter == "==" && row.age == age) r2 = true;
+            }
+
+            return r1 && r2;
+        });
+    }    
+           
+</script>
